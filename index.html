@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>排列组合常用方法图解</title>
+  <style>
+    :root {
+      --bg: #f5f8fb;
+      --ink: #17212b;
+      --muted: #536170;
+      --line: #d8e1ea;
+      --surface: #ffffff;
+      --soft-blue: #e8f2ff;
+      --soft-green: #e7f7f0;
+      --soft-orange: #fff1dc;
+      --soft-red: #ffe9e7;
+      --blue: #2563eb;
+      --green: #0f8f6f;
+      --orange: #d97706;
+      --red: #d64550;
+      --yellow: #f2b705;
+      --shadow: 0 12px 30px rgba(33, 46, 64, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        linear-gradient(90deg, rgba(37, 99, 235, 0.12), transparent 18%, rgba(15, 143, 111, 0.10) 52%, transparent 74%, rgba(217, 119, 6, 0.10)),
+        linear-gradient(180deg, #f9fbff 0%, var(--bg) 48%, #eef4f8 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(23, 33, 43, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 33, 43, 0.045) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.58), transparent 76%);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(1260px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 780px;
+      margin: 0;
+      font-family: "Iowan Old Style", "STSong", "Songti SC", serif;
+      font-size: clamp(36px, 5vw, 70px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 14px 0 0;
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    .quick-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .quick-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .quick-title strong {
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .formula-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .formula-chip {
+      min-height: 54px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(239, 246, 255, 0.44));
+    }
+
+    .formula-chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .formula-chip b {
+      display: block;
+      margin-top: 4px;
+      font-family: "Menlo", "Consolas", monospace;
+      font-size: 14px;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 22px;
+    }
+
+    .toc a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .toc a:hover {
+      border-color: rgba(37, 99, 235, 0.45);
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.13);
+      transform: translateY(-1px);
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .method-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow);
+    }
+
+    .method-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    .method-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+      padding: 16px 16px 12px;
+      border-top: 5px solid var(--accent, var(--blue));
+      background: linear-gradient(180deg, var(--tint, var(--soft-blue)), rgba(255, 255, 255, 0.86));
+    }
+
+    .method-title {
+      margin: 0;
+      font-family: "Iowan Old Style", "STSong", "Songti SC", serif;
+      font-size: clamp(23px, 2.2vw, 32px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .method-subtitle {
+      margin: 7px 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 6px 9px;
+      border: 1px solid rgba(23, 33, 43, 0.14);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .method-body {
+      display: grid;
+      grid-template-columns: minmax(270px, 0.92fr) minmax(0, 1fr);
+      gap: 16px;
+      padding: 16px;
+      align-items: start;
+    }
+
+    .method-card.wide .method-body {
+      grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.2fr);
+    }
+
+    .diagram {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 251, 255, 0.76)),
+        repeating-linear-gradient(0deg, rgba(23, 33, 43, 0.04) 0 1px, transparent 1px 24px);
+      padding: 8px;
+    }
+
+    .diagram svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .copy {
+      min-width: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .mini-heading {
+      margin: 0 0 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .formula-line,
+    .example-line,
+    .answer-line {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.72;
+    }
+
+    .formula-line code,
+    .answer-line code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: #eef4fb;
+      color: #102033;
+      font-family: "Menlo", "Consolas", monospace;
+      font-size: 0.94em;
+      overflow-wrap: anywhere;
+    }
+
+    .steps {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--ink);
+      line-height: 1.72;
+      font-size: 14px;
+    }
+
+    .steps li + li {
+      margin-top: 4px;
+    }
+
+    .tip {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .blue {
+      --accent: var(--blue);
+      --tint: var(--soft-blue);
+    }
+
+    .green {
+      --accent: var(--green);
+      --tint: var(--soft-green);
+    }
+
+    .orange {
+      --accent: var(--orange);
+      --tint: var(--soft-orange);
+    }
+
+    .red {
+      --accent: var(--red);
+      --tint: var(--soft-red);
+    }
+
+    .svg-text {
+      fill: #17212b;
+      font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .svg-small {
+      fill: #536170;
+      font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .slot {
+      fill: #ffffff;
+      stroke: #9eb1c2;
+      stroke-width: 2;
+    }
+
+    .slot-blue {
+      fill: #dbeafe;
+      stroke: #2563eb;
+    }
+
+    .slot-green {
+      fill: #d9f5ea;
+      stroke: #0f8f6f;
+    }
+
+    .slot-orange {
+      fill: #ffedd5;
+      stroke: #d97706;
+    }
+
+    .slot-red {
+      fill: #ffe1df;
+      stroke: #d64550;
+    }
+
+    .arrow {
+      stroke: #536170;
+      stroke-width: 2.4;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+
+    .line {
+      stroke: #9eb1c2;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .grid-line {
+      stroke: #ccd8e3;
+      stroke-width: 1;
+    }
+
+    footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .method-grid,
+      .method-body,
+      .method-card.wide .method-body {
+        grid-template-columns: 1fr;
+      }
+
+      .method-card.wide {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: min(100% - 18px, 1260px);
+        padding-top: 18px;
+      }
+
+      .formula-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .method-header {
+        grid-template-columns: 1fr;
+      }
+
+      .badge {
+        width: fit-content;
+      }
+
+      .method-body {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Combinatorics playbook</p>
+        <h1 id="page-title">排列组合常用方法图解</h1>
+        <p class="lead">把题目先翻译成“谁在排、谁在选、有没有相邻、能不能重复、是否相同”。下面每张卡片给出使用场景、公式、典型例题和一幅可视化图，方便一眼判断该用哪种套路。</p>
+      </div>
+
+      <aside class="quick-panel" aria-label="核心公式速查">
+        <div class="quick-title">
+          <strong>核心公式速查</strong>
+          <span>先判断对象是否相同</span>
+        </div>
+        <div class="formula-grid">
+          <div class="formula-chip"><span>排列</span><b>P(n,k)=n!/(n-k)!</b></div>
+          <div class="formula-chip"><span>组合</span><b>C(n,k)=n!/[k!(n-k)!]</b></div>
+          <div class="formula-chip"><span>可重复组合</span><b>C(n+k-1,k)</b></div>
+          <div class="formula-chip"><span>容斥</span><b>|A∪B|=|A|+|B|-|A∩B|</b></div>
+        </div>
+      </aside>
+    </section>
+
+    <nav class="toc" aria-label="方法导航">
+      <a href="#sum-product">加法与乘法</a>
+      <a href="#permutation">排列</a>
+      <a href="#combination">组合</a>
+      <a href="#bundle">捆绑法</a>
+      <a href="#gap">插空法</a>
+      <a href="#stars-bars">隔板法</a>
+      <a href="#inclusion">容斥原理</a>
+      <a href="#circle">圆排列</a>
+      <a href="#multiset">重排计数</a>
+      <a href="#grouping">分组分配</a>
+      <a href="#paths">路径计数</a>
+      <a href="#complement">反面计数</a>
+      <a href="#recurrence">递推动态规划</a>
+    </nav>
+
+    <section class="method-grid" aria-label="排列组合方法列表">
+      <article class="method-card wide blue" id="sum-product">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">加法原理与乘法原理</h2>
+            <p class="method-subtitle">分类互斥用加法，分步连续用乘法。很多排列组合题的第一步就是把“或”和“且”拆清楚。</p>
+          </div>
+          <span class="badge">分类 / 分步</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="加法与乘法原理图">
+            <svg viewBox="0 0 420 230" role="img">
+              <defs>
+                <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <path d="M0,0 L8,4 L0,8 Z" fill="#536170"></path>
+                </marker>
+              </defs>
+              <text class="svg-text" x="30" y="30">分类：A 或 B</text>
+              <rect class="slot slot-blue" x="36" y="50" width="86" height="48" rx="8"></rect>
+              <text class="svg-text" x="62" y="80">3 种</text>
+              <text class="svg-text" x="140" y="80">+</text>
+              <rect class="slot slot-green" x="170" y="50" width="86" height="48" rx="8"></rect>
+              <text class="svg-text" x="196" y="80">4 种</text>
+              <text class="svg-text" x="282" y="80">= 7 种</text>
+
+              <text class="svg-text" x="30" y="135">分步：先选衣服，再选裤子</text>
+              <rect class="slot slot-orange" x="36" y="156" width="64" height="44" rx="8"></rect>
+              <text class="svg-small" x="54" y="183">3 件</text>
+              <path class="arrow" d="M112 178 H164"></path>
+              <rect class="slot slot-red" x="178" y="156" width="64" height="44" rx="8"></rect>
+              <text class="svg-small" x="195" y="183">4 条</text>
+              <path class="arrow" d="M254 178 H306"></path>
+              <text class="svg-text" x="316" y="183">3×4=12</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式</p>
+              <p class="formula-line">分类：<code>m+n</code>；分步：<code>m×n</code>。若有多类或多步，继续相加或相乘。</p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">早餐从 3 种包子或 4 种面包中选一种，是 <code>3+4=7</code> 种；再配 2 种饮料之一，是 <code>7×2=14</code> 种。</p>
+            </div>
+            <p class="tip">判断关键词：题目问“方案属于哪一类”通常先加；题目说“一套方案要完成几件事”通常相乘。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card green" id="permutation">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">排列法</h2>
+            <p class="method-subtitle">从 n 个不同对象里选 k 个并排成一列，顺序会影响结果。</p>
+          </div>
+          <span class="badge">顺序重要</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="排列法图">
+            <svg viewBox="0 0 360 220" role="img">
+              <rect class="slot slot-green" x="30" y="44" width="68" height="58" rx="8"></rect>
+              <rect class="slot slot-green" x="118" y="44" width="68" height="58" rx="8"></rect>
+              <rect class="slot slot-green" x="206" y="44" width="68" height="58" rx="8"></rect>
+              <text class="svg-text" x="50" y="78">5</text>
+              <text class="svg-text" x="138" y="78">4</text>
+              <text class="svg-text" x="226" y="78">3</text>
+              <path class="arrow" d="M64 116 V154"></path>
+              <path class="arrow" d="M152 116 V154"></path>
+              <path class="arrow" d="M240 116 V154"></path>
+              <text class="svg-small" x="37" y="178">第 1 位</text>
+              <text class="svg-small" x="126" y="178">第 2 位</text>
+              <text class="svg-small" x="214" y="178">第 3 位</text>
+              <text class="svg-text" x="78" y="208">P(5,3)=5×4×3</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式</p>
+              <p class="formula-line"><code>P(n,k)=n(n-1)...(n-k+1)</code></p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">5 人中选 3 人排成一队：第一位 5 选，第二位 4 选，第三位 3 选，共 <code>60</code> 种。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card blue" id="combination">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">组合法</h2>
+            <p class="method-subtitle">只关心选了谁，不关心先后顺序。先排列再除掉内部顺序也是常见想法。</p>
+          </div>
+          <span class="badge">顺序不重要</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="组合法图">
+            <svg viewBox="0 0 360 220" role="img">
+              <circle class="slot slot-blue" cx="54" cy="70" r="24"></circle>
+              <circle class="slot slot-blue" cx="116" cy="70" r="24"></circle>
+              <circle class="slot slot-blue" cx="178" cy="70" r="24"></circle>
+              <circle class="slot" cx="240" cy="70" r="24"></circle>
+              <circle class="slot" cx="302" cy="70" r="24"></circle>
+              <text class="svg-text" x="47" y="76">A</text>
+              <text class="svg-text" x="109" y="76">B</text>
+              <text class="svg-text" x="171" y="76">C</text>
+              <text class="svg-text" x="233" y="76">D</text>
+              <text class="svg-text" x="295" y="76">E</text>
+              <text class="svg-small" x="42" y="125">选 A,B,C</text>
+              <text class="svg-small" x="154" y="125">与</text>
+              <text class="svg-small" x="198" y="125">选 C,B,A</text>
+              <text class="svg-text" x="93" y="168">是同一个小组</text>
+              <text class="svg-text" x="94" y="204">C(5,3)=10</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式</p>
+              <p class="formula-line"><code>C(n,k)=P(n,k)/k!</code></p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">5 人中选 3 人组成小组：<code>C(5,3)=10</code>。小组没有“第一人、第二人”的区别。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card orange" id="bundle">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">捆绑法</h2>
+            <p class="method-subtitle">要求若干对象相邻时，把它们临时看作一个整体，再考虑整体内部排列。</p>
+          </div>
+          <span class="badge">相邻</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="捆绑法图">
+            <svg viewBox="0 0 360 220" role="img">
+              <rect class="slot slot-orange" x="38" y="48" width="126" height="62" rx="8"></rect>
+              <rect class="slot slot-red" x="54" y="64" width="40" height="32" rx="6"></rect>
+              <rect class="slot slot-red" x="108" y="64" width="40" height="32" rx="6"></rect>
+              <text class="svg-text" x="67" y="86">A</text>
+              <text class="svg-text" x="121" y="86">B</text>
+              <text class="svg-small" x="67" y="132">AB 当作一块</text>
+              <path class="arrow" d="M174 78 H218"></path>
+              <rect class="slot slot-orange" x="232" y="50" width="58" height="46" rx="8"></rect>
+              <text class="svg-text" x="248" y="80">AB</text>
+              <rect class="slot slot-blue" x="58" y="156" width="48" height="38" rx="8"></rect>
+              <rect class="slot slot-blue" x="126" y="156" width="48" height="38" rx="8"></rect>
+              <rect class="slot slot-blue" x="194" y="156" width="48" height="38" rx="8"></rect>
+              <text class="svg-small" x="72" y="180">块</text>
+              <text class="svg-small" x="140" y="180">C</text>
+              <text class="svg-small" x="208" y="180">D</text>
+              <text class="svg-text" x="260" y="180">3!×2!</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">做法</p>
+              <ol class="steps">
+                <li>把必须相邻的对象捆成一块。</li>
+                <li>块与其他对象一起排列。</li>
+                <li>乘上块内自己的排列数。</li>
+              </ol>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">A、B 必须相邻，和 C、D 排一列：把 AB 看成 1 块，三块排列 <code>3!</code>，AB 内部 <code>2!</code>，共 <code>12</code> 种。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card green" id="gap">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">插空法</h2>
+            <p class="method-subtitle">要求“不相邻”时，先排一个基准序列，利用它产生的空位来插入另一些对象。</p>
+          </div>
+          <span class="badge">不相邻</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="插空法图">
+            <svg viewBox="0 0 360 220" role="img">
+              <text class="svg-small" x="42" y="34">先排 5 个男生，出现 6 个空位</text>
+              <text class="svg-text" x="38" y="86">_ B _ B _ B _ B _ B _</text>
+              <circle class="slot slot-green" cx="64" cy="132" r="17"></circle>
+              <circle class="slot slot-green" cx="144" cy="132" r="17"></circle>
+              <circle class="slot slot-green" cx="224" cy="132" r="17"></circle>
+              <text class="svg-text" x="59" y="138">G</text>
+              <text class="svg-text" x="139" y="138">G</text>
+              <text class="svg-text" x="219" y="138">G</text>
+              <path class="arrow" d="M64 112 V93"></path>
+              <path class="arrow" d="M144 112 V93"></path>
+              <path class="arrow" d="M224 112 V93"></path>
+              <text class="svg-text" x="74" y="188">C(6,3)×3!</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式感</p>
+              <p class="formula-line">先排基准对象，再从空位中选位置。不同对象插入时，还要乘它们自己的排列数。</p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">5 个男生、3 个女生排队，女生互不相邻：男生先排 <code>5!</code>，产生 6 个空，选 3 个空放女生并排列：<code>5!×C(6,3)×3!</code>。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card wide blue" id="stars-bars">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">隔板法 Stars and Bars</h2>
+            <p class="method-subtitle">把相同物品分给若干有标号的盒子，用隔板切分星星序列。它本质上是“非负整数解个数”。</p>
+          </div>
+          <span class="badge">相同物品分配</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="隔板法图">
+            <svg viewBox="0 0 420 230" role="img">
+              <text class="svg-text" x="35" y="36">x1 + x2 + x3 = 7</text>
+              <text class="svg-small" x="35" y="62">7 个星，2 块隔板</text>
+              <g transform="translate(38 94)">
+                <circle class="slot slot-blue" cx="16" cy="20" r="12"></circle>
+                <circle class="slot slot-blue" cx="48" cy="20" r="12"></circle>
+                <circle class="slot slot-blue" cx="80" cy="20" r="12"></circle>
+                <line class="line" x1="114" y1="0" x2="114" y2="42"></line>
+                <circle class="slot slot-green" cx="146" cy="20" r="12"></circle>
+                <circle class="slot slot-green" cx="178" cy="20" r="12"></circle>
+                <line class="line" x1="212" y1="0" x2="212" y2="42"></line>
+                <circle class="slot slot-orange" cx="244" cy="20" r="12"></circle>
+                <circle class="slot slot-orange" cx="276" cy="20" r="12"></circle>
+              </g>
+              <text class="svg-small" x="80" y="166">x1=3</text>
+              <text class="svg-small" x="178" y="166">x2=2</text>
+              <text class="svg-small" x="274" y="166">x3=2</text>
+              <text class="svg-text" x="85" y="205">在 9 个位置中选 2 个放隔板：C(9,2)</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式</p>
+              <p class="formula-line">非负整数解：<code>x1+...+xr=n</code> 的个数是 <code>C(n+r-1,r-1)</code>。若每盒至少 1 个，先每盒放 1 个，再隔板。</p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">7 个相同糖果分给 3 个孩子，允许有人没有：<code>C(7+3-1,3-1)=C(9,2)=36</code>。</p>
+            </div>
+            <p class="tip">如果题目要求“每人至少 2 个”，令 <code>yi=xi-2</code>，先扣掉下限后再用隔板法。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card red" id="inclusion">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">容斥原理</h2>
+            <p class="method-subtitle">先把好算的大集合加起来，再把重复计算的交集减掉。三集合时还要把三者交集加回来。</p>
+          </div>
+          <span class="badge">去重</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="容斥原理图">
+            <svg viewBox="0 0 360 220" role="img">
+              <circle cx="138" cy="98" r="62" fill="rgba(37,99,235,0.24)" stroke="#2563eb" stroke-width="2"></circle>
+              <circle cx="218" cy="98" r="62" fill="rgba(214,69,80,0.24)" stroke="#d64550" stroke-width="2"></circle>
+              <text class="svg-text" x="99" y="96">A</text>
+              <text class="svg-text" x="249" y="96">B</text>
+              <text class="svg-small" x="160" y="103">重复</text>
+              <text class="svg-text" x="45" y="186">|A∪B| = |A| + |B| - |A∩B|</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式</p>
+              <p class="formula-line">两集合：<code>|A∪B|=|A|+|B|-|A∩B|</code>。三集合：加单集合，减两两交集，加三者交集。</p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">1 到 30 中能被 2 或 3 整除的数：<code>15+10-5=20</code>，因为被 6 整除的数被算了两次。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card orange" id="circle">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">圆排列</h2>
+            <p class="method-subtitle">围成一圈时，整体旋转不产生新排列。常用做法是固定一个人，再排剩下的人。</p>
+          </div>
+          <span class="badge">旋转等价</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="圆排列图">
+            <svg viewBox="0 0 360 220" role="img">
+              <circle cx="180" cy="104" r="70" fill="none" stroke="#d8a23a" stroke-width="3"></circle>
+              <circle class="slot slot-orange" cx="180" cy="34" r="21"></circle>
+              <circle class="slot slot-blue" cx="247" cy="84" r="21"></circle>
+              <circle class="slot slot-green" cx="222" cy="160" r="21"></circle>
+              <circle class="slot slot-red" cx="138" cy="160" r="21"></circle>
+              <circle class="slot" cx="113" cy="84" r="21"></circle>
+              <text class="svg-text" x="174" y="40">A</text>
+              <text class="svg-text" x="241" y="90">B</text>
+              <text class="svg-text" x="216" y="166">C</text>
+              <text class="svg-text" x="132" y="166">D</text>
+              <text class="svg-text" x="107" y="90">E</text>
+              <text class="svg-small" x="124" y="207">固定 A，再排 4 人</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式</p>
+              <p class="formula-line">n 个不同对象围一圈：<code>(n-1)!</code>。若翻转也视为相同，通常再除以 <code>2</code>。</p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">5 人围圆桌坐，不区分整体旋转：固定 1 人，其余 4 人排座位，共 <code>4!=24</code> 种。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card blue" id="multiset">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">重排计数</h2>
+            <p class="method-subtitle">有重复元素时，先把它们当作全不同排列，再除以每类重复元素内部交换造成的重复。</p>
+          </div>
+          <span class="badge">重复元素</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="重排计数图">
+            <svg viewBox="0 0 360 220" role="img">
+              <rect class="slot slot-blue" x="42" y="56" width="52" height="48" rx="8"></rect>
+              <rect class="slot slot-blue" x="112" y="56" width="52" height="48" rx="8"></rect>
+              <rect class="slot slot-green" x="182" y="56" width="52" height="48" rx="8"></rect>
+              <rect class="slot slot-orange" x="252" y="56" width="52" height="48" rx="8"></rect>
+              <text class="svg-text" x="62" y="86">A</text>
+              <text class="svg-text" x="132" y="86">A</text>
+              <text class="svg-text" x="202" y="86">B</text>
+              <text class="svg-text" x="272" y="86">C</text>
+              <path class="line" d="M61 132 C98 164, 128 164, 146 132"></path>
+              <text class="svg-small" x="83" y="183">两个 A 互换不变</text>
+              <text class="svg-text" x="106" y="210">4! / 2!</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式</p>
+              <p class="formula-line">共有 n 个，其中重复数为 <code>a,b,c...</code>：<code>n!/(a!b!c!...)</code></p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">字母 AABC 能排成多少个不同字符串：<code>4!/2!=12</code>。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card green" id="grouping">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">分组与分配</h2>
+            <p class="method-subtitle">分到有标号盒子，盒子不同；分成无标号小组，组之间互换不产生新方案。</p>
+          </div>
+          <span class="badge">盒子是否有名</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="分组分配图">
+            <svg viewBox="0 0 360 220" role="img">
+              <text class="svg-small" x="44" y="30">6 人分成 3 个无标号二人组</text>
+              <rect class="slot slot-green" x="42" y="58" width="78" height="58" rx="8"></rect>
+              <rect class="slot slot-green" x="142" y="58" width="78" height="58" rx="8"></rect>
+              <rect class="slot slot-green" x="242" y="58" width="78" height="58" rx="8"></rect>
+              <text class="svg-text" x="64" y="92">2 人</text>
+              <text class="svg-text" x="164" y="92">2 人</text>
+              <text class="svg-text" x="264" y="92">2 人</text>
+              <path class="line" d="M82 138 C138 170, 220 170, 278 138"></path>
+              <text class="svg-small" x="92" y="184">三组互换不算新方案</text>
+              <text class="svg-text" x="82" y="211">6! / (2!2!2! · 3!)</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式感</p>
+              <p class="formula-line">若分成大小为 <code>a,b,c</code> 的无标号组，先全排列，再除以各组内部排列，还要除以同大小组之间的交换。</p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">6 人分成 3 个无标号二人组：<code>6!/(2!^3·3!)=15</code>。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card wide orange" id="paths">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">路径计数与二项式系数</h2>
+            <p class="method-subtitle">只能向右或向上走的格点路径，就是在总步数里选择哪些步向上。障碍题常与容斥或反面计数结合。</p>
+          </div>
+          <span class="badge">选步子</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="路径计数图">
+            <svg viewBox="0 0 420 230" role="img">
+              <g transform="translate(56 34)">
+                <line class="grid-line" x1="0" y1="0" x2="280" y2="0"></line>
+                <line class="grid-line" x1="0" y1="40" x2="280" y2="40"></line>
+                <line class="grid-line" x1="0" y1="80" x2="280" y2="80"></line>
+                <line class="grid-line" x1="0" y1="120" x2="280" y2="120"></line>
+                <line class="grid-line" x1="0" y1="160" x2="280" y2="160"></line>
+                <line class="grid-line" x1="0" y1="0" x2="0" y2="160"></line>
+                <line class="grid-line" x1="56" y1="0" x2="56" y2="160"></line>
+                <line class="grid-line" x1="112" y1="0" x2="112" y2="160"></line>
+                <line class="grid-line" x1="168" y1="0" x2="168" y2="160"></line>
+                <line class="grid-line" x1="224" y1="0" x2="224" y2="160"></line>
+                <line class="grid-line" x1="280" y1="0" x2="280" y2="160"></line>
+                <path d="M0 160 H56 H112 V120 H168 H224 V80 V40 H280 V0" fill="none" stroke="#d97706" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+                <circle class="slot slot-green" cx="0" cy="160" r="12"></circle>
+                <circle class="slot slot-red" cx="280" cy="0" r="12"></circle>
+              </g>
+              <text class="svg-small" x="46" y="214">从 (0,0) 到 (5,4)：共 9 步，选 4 步向上</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式</p>
+              <p class="formula-line">向右 a 步、向上 b 步：<code>C(a+b,a)=C(a+b,b)</code>。</p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">从左下走到右上，必须向右 5 步、向上 4 步，总共 <code>C(9,4)=126</code> 条路径。</p>
+            </div>
+            <p class="tip">若必须经过某点，就把路径拆成“起点到该点”和“该点到终点”两段相乘。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card red" id="complement">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">反面计数</h2>
+            <p class="method-subtitle">“至少一个”“不全是”“没有某种情况”等题，直接数常常乱，先数总数再减反面。</p>
+          </div>
+          <span class="badge">至少 / 至多</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="反面计数图">
+            <svg viewBox="0 0 360 220" role="img">
+              <rect class="slot" x="52" y="52" width="256" height="116" rx="8"></rect>
+              <rect class="slot slot-red" x="196" y="78" width="82" height="64" rx="8"></rect>
+              <text class="svg-text" x="110" y="112">总数</text>
+              <text class="svg-small" x="205" y="114">反面</text>
+              <text class="svg-text" x="64" y="198">目标 = 总数 - 反面</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">公式感</p>
+              <p class="formula-line"><code>满足条件 = 全部情况 - 不满足条件</code></p>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">4 位数字密码，每位可为 0-9，至少有一位是 7：总数 <code>10^4</code>，反面是没有 7：<code>9^4</code>，答案 <code>10^4-9^4=3439</code>。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card blue" id="recurrence">
+        <header class="method-header">
+          <div>
+            <h2 class="method-title">递推与动态规划</h2>
+            <p class="method-subtitle">当状态很多、限制会影响下一步时，把“最后一步怎么来”写成递推，比硬套排列组合更稳。</p>
+          </div>
+          <span class="badge">状态转移</span>
+        </header>
+        <div class="method-body">
+          <figure class="diagram" aria-label="递推图">
+            <svg viewBox="0 0 360 220" role="img">
+              <rect class="slot slot-blue" x="38" y="72" width="50" height="44" rx="8"></rect>
+              <rect class="slot slot-blue" x="112" y="72" width="50" height="44" rx="8"></rect>
+              <rect class="slot slot-blue" x="186" y="72" width="50" height="44" rx="8"></rect>
+              <rect class="slot slot-blue" x="260" y="72" width="50" height="44" rx="8"></rect>
+              <text class="svg-text" x="53" y="100">1</text>
+              <text class="svg-text" x="127" y="100">2</text>
+              <text class="svg-text" x="201" y="100">3</text>
+              <text class="svg-text" x="275" y="100">4</text>
+              <path class="arrow" d="M88 94 H108"></path>
+              <path class="arrow" d="M162 94 H182"></path>
+              <path class="arrow" d="M236 94 H256"></path>
+              <text class="svg-small" x="48" y="158">爬到第 n 阶</text>
+              <text class="svg-text" x="48" y="192">f(n)=f(n-1)+f(n-2)</text>
+            </svg>
+          </figure>
+          <div class="copy">
+            <div>
+              <p class="mini-heading">做法</p>
+              <ol class="steps">
+                <li>定义状态，例如 <code>f(n)</code> 表示到第 n 阶的方法数。</li>
+                <li>按最后一步或最后一个对象分类。</li>
+                <li>写初值，逐步算出答案。</li>
+              </ol>
+            </div>
+            <div>
+              <p class="mini-heading">例子</p>
+              <p class="example-line">每次爬 1 或 2 阶，到第 5 阶：<code>f(1)=1,f(2)=2</code>，<code>f(5)=8</code>。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <footer>速记：相邻用捆绑，不相邻用插空；相同物品分配想隔板；至少类条件先想反面；重复计算就用容斥。</footer>
+  </main>
+</body>
+</html>
