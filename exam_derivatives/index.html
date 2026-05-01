@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>考试常见函数与导数高密度图谱</title>
+  <style>
+    :root {
+      --bg: #f3ead8;
+      --paper: #fff8ea;
+      --ink: #15262b;
+      --muted: #66706c;
+      --grid: rgba(21, 38, 43, 0.075);
+      --line: rgba(21, 38, 43, 0.17);
+      --axis: rgba(21, 38, 43, 0.46);
+      --f: #bf4f32;
+      --d: #077b78;
+      --branch: #8a6a2d;
+      --gold: #b98422;
+      --shadow: 0 12px 34px rgba(68, 50, 24, 0.12);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+      background:
+        radial-gradient(circle at 8% -4%, rgba(191, 79, 50, 0.2), transparent 25rem),
+        radial-gradient(circle at 92% 0%, rgba(7, 123, 120, 0.18), transparent 24rem),
+        linear-gradient(135deg, #f7efdf, var(--bg));
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 26px 26px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent 74%);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(1760px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 34px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino", "Georgia", serif;
+      font-size: clamp(28px, 4.1vw, 58px);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+    }
+
+    .compact-note {
+      max-width: 560px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+      text-align: right;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 248, 234, 0.64);
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 24px;
+      height: 0;
+      border-top: 3px solid var(--f);
+      border-radius: 999px;
+    }
+
+    .swatch.derivative { border-color: var(--d); }
+    .swatch.branch { border-color: var(--branch); border-top-style: dashed; }
+
+    .atlas {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(255, 248, 234, 0.92), rgba(255, 255, 255, 0.62));
+      box-shadow: var(--shadow);
+      animation: pop 360ms ease both;
+      animation-delay: var(--delay, 0ms);
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      right: -44px;
+      bottom: -56px;
+      width: 160px;
+      height: 110px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(191,79,50,0.08), rgba(7,123,120,0.09));
+      pointer-events: none;
+      transform: rotate(-12deg);
+    }
+
+    .card-head {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+      padding: 11px 12px 8px;
+      border-bottom: 1px solid rgba(21, 38, 43, 0.08);
+    }
+
+    .title {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino", "Georgia", serif;
+      font-size: 19px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .rule {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .tag {
+      padding: 5px 7px;
+      border: 1px solid rgba(21, 38, 43, 0.12);
+      border-radius: 999px;
+      color: #836323;
+      background: rgba(255, 255, 255, 0.42);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .formula-row {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 8px 10px 6px;
+    }
+
+    .formula-box {
+      min-width: 0;
+      border-radius: 12px;
+      border: 1px solid rgba(21, 38, 43, 0.08);
+      background: rgba(255, 255, 255, 0.38);
+      padding: 6px 7px;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .formula {
+      display: block;
+      overflow-wrap: anywhere;
+      font-family: "Iowan Old Style", "Palatino", "Georgia", serif;
+      font-size: 15px;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+
+    .plots {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 0 10px 10px;
+    }
+
+    .plot-box {
+      min-width: 0;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(21, 38, 43, 0.09);
+      background: rgba(255, 255, 255, 0.33);
+    }
+
+    .plot-name {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 7px 0;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .domain {
+      color: rgba(21, 38, 43, 0.52);
+      letter-spacing: 0;
+      text-transform: none;
+      font-weight: 800;
+    }
+
+    svg.plot {
+      display: block;
+      width: 100%;
+      height: 122px;
+    }
+
+    .grid-line {
+      stroke: rgba(21, 38, 43, 0.075);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .axis {
+      stroke: var(--axis);
+      stroke-width: 1.15;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .asymptote {
+      stroke: rgba(21, 38, 43, 0.28);
+      stroke-width: 1.05;
+      stroke-dasharray: 3 4;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .tick-label {
+      fill: rgba(21, 38, 43, 0.53);
+      font-size: 8px;
+      font-weight: 850;
+      user-select: none;
+    }
+
+    .curve {
+      fill: none;
+      stroke-width: 2.45;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 3px 4px rgba(21, 38, 43, 0.12));
+    }
+
+    .curve.f { stroke: var(--f); }
+    .curve.d { stroke: var(--d); }
+    .curve.alt { stroke-dasharray: 5 4; opacity: 0.9; }
+    .curve.branch { stroke: var(--branch); }
+
+    footer {
+      margin-top: 14px;
+      color: rgba(21, 38, 43, 0.58);
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(10px) scale(0.995); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 1080px) {
+      .atlas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 820px) {
+      .topbar { grid-template-columns: 1fr; }
+      .compact-note { text-align: left; max-width: none; }
+      .legend { justify-content: flex-start; }
+      .atlas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      main { width: min(100% - 18px, 1760px); padding-top: 16px; }
+      .atlas { grid-template-columns: 1fr; }
+      svg.plot { height: 132px; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      body::before, .card::after { display: none; }
+      main { width: 100%; padding: 0; }
+      .card { break-inside: avoid; box-shadow: none; }
+      .atlas { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">dense derivative atlas</p>
+        <h1>考试常见函数与导数高密度图谱</h1>
+      </div>
+      <div class="compact-note">
+        一行四个卡片：左图是 f(x)，右图是 f′(x)。有正负两支的关系会同时画出，虚线表示另一支；虚线竖线/横线表示渐近线或边界。
+        <div class="legend">
+          <span class="pill"><span class="swatch"></span>f(x)</span>
+          <span class="pill"><span class="swatch derivative"></span>f′(x)</span>
+          <span class="pill"><span class="swatch branch"></span>负支/另一支</span>
+        </div>
+      </div>
+    </header>
+
+    <section id="atlas" class="atlas" aria-label="函数与导数高密度图谱"></section>
+
+    <footer>端点不再把超出画布的曲线压成平台；所有曲线先按真实坐标绘制，再由图框裁剪。</footer>
+  </main>
+
+  <script>
+    const W = 226;
+    const H = 122;
+    const PAD = { left: 20, right: 8, top: 8, bottom: 18 };
+    const PI = Math.PI;
+    const TAU = Math.PI * 2;
+
+    const finite = Number.isFinite;
+    const noneAt = (x, eps = 0.045) => Math.abs(x) < eps;
+    const sec2 = x => 1 / (Math.cos(x) * Math.cos(x));
+
+    const examples = [
+      {
+        title: "常数", tag: "basic", rule: "水平线，斜率恒为 0", fFormula: "f = 2", dFormula: "f′ = 0",
+        xMin: -4, xMax: 4, yMin: -1.5, yMax: 3.2,
+        f: [{ fn: x => 2 }], d: [{ fn: x => 0 }]
+      },
+      {
+        title: "一次", tag: "basic", rule: "导数就是斜率 k", fFormula: "f = 1.2x+1", dFormula: "f′ = 1.2",
+        xMin: -4, xMax: 4, yMin: -5, yMax: 6,
+        f: [{ fn: x => 1.2 * x + 1 }], d: [{ fn: x => 1.2 }]
+      },
+      {
+        title: "二次", tag: "power", rule: "顶点处斜率为 0", fFormula: "f = x<sup>2</sup>", dFormula: "f′ = 2x",
+        xMin: -3, xMax: 3, yMin: -3, yMax: 9,
+        f: [{ fn: x => x * x }], d: [{ fn: x => 2 * x }]
+      },
+      {
+        title: "三次", tag: "power", rule: "拐点处切线水平", fFormula: "f = x<sup>3</sup>", dFormula: "f′ = 3x<sup>2</sup>",
+        xMin: -2.2, xMax: 2.2, yMin: -8, yMax: 10,
+        f: [{ fn: x => x * x * x }], d: [{ fn: x => 3 * x * x }]
+      },
+      {
+        title: "四次", tag: "power", rule: "偶函数变奇函数", fFormula: "f = x<sup>4</sup>", dFormula: "f′ = 4x<sup>3</sup>",
+        xMin: -2, xMax: 2, yMin: -7, yMax: 10,
+        f: [{ fn: x => Math.pow(x, 4) }], d: [{ fn: x => 4 * Math.pow(x, 3) }]
+      },
+      {
+        title: "绝对值", tag: "piecewise", rule: "x=0 不可导", fFormula: "f = |x|", dFormula: "f′ = ±1",
+        xMin: -4, xMax: 4, yMin: -1.5, yMax: 4.5, domain: "x≠0",
+        f: [{ fn: x => Math.abs(x) }], d: [{ fn: x => noneAt(x, 0.035) ? NaN : (x > 0 ? 1 : -1) }]
+      },
+      {
+        title: "倒数", tag: "branch", rule: "两支都递减", fFormula: "f = 1/x", dFormula: "f′ = -1/x<sup>2</sup>",
+        xMin: -5, xMax: 5, yMin: -6, yMax: 6, domain: "x≠0", asymptotes: [{ x: 0 }, { y: 0 }],
+        f: [{ fn: x => noneAt(x, 0.07) ? NaN : 1 / x }], d: [{ fn: x => noneAt(x, 0.12) ? NaN : -1 / (x * x) }]
+      },
+      {
+        title: "倒数平方", tag: "branch", rule: "导数左右异号", fFormula: "f = 1/x<sup>2</sup>", dFormula: "f′ = -2/x<sup>3</sup>",
+        xMin: -5, xMax: 5, yMin: -5, yMax: 8, domain: "x≠0", asymptotes: [{ x: 0 }, { y: 0 }],
+        f: [{ fn: x => noneAt(x, 0.13) ? NaN : 1 / (x * x) }], d: [{ fn: x => noneAt(x, 0.18) ? NaN : -2 / Math.pow(x, 3) }]
+      },
+      {
+        title: "平方根两支", tag: "± branch", rule: "正支与负支都画出", fFormula: "y = ±√x", dFormula: "y′ = ±1/(2√x)",
+        xMin: -0.5, xMax: 8, yMin: -4, yMax: 4, domain: "x>0", asymptotes: [{ x: 0 }],
+        f: [{ fn: x => x < 0 ? NaN : Math.sqrt(x) }, { fn: x => x < 0 ? NaN : -Math.sqrt(x), alt: true }],
+        d: [{ fn: x => x <= 0.035 ? NaN : 1 / (2 * Math.sqrt(x)) }, { fn: x => x <= 0.035 ? NaN : -1 / (2 * Math.sqrt(x)), alt: true }]
+      },
+      {
+        title: "圆上下半支", tag: "implicit", rule: "x²+y²=4 的两支", fFormula: "y = ±√(4-x²)", dFormula: "y′ = -x/y",
+        xMin: -2.35, xMax: 2.35, yMin: -3.5, yMax: 3.5, domain: "|x|<2",
+        f: [{ fn: x => Math.abs(x) > 2 ? NaN : Math.sqrt(4 - x * x) }, { fn: x => Math.abs(x) > 2 ? NaN : -Math.sqrt(4 - x * x), alt: true }],
+        d: [
+          { fn: x => Math.abs(x) >= 1.985 ? NaN : -x / Math.sqrt(4 - x * x) },
+          { fn: x => Math.abs(x) >= 1.985 ? NaN : x / Math.sqrt(4 - x * x), alt: true }
+        ],
+        asymptotes: [{ x: -2 }, { x: 2 }]
+      },
+      {
+        title: "自然指数", tag: "exp", rule: "导数仍是自己", fFormula: "f = e<sup>x</sup>", dFormula: "f′ = e<sup>x</sup>",
+        xMin: -3.2, xMax: 2.6, yMin: -0.5, yMax: 8, asymptotes: [{ y: 0 }],
+        f: [{ fn: x => Math.exp(x) }], d: [{ fn: x => Math.exp(x) }]
+      },
+      {
+        title: "一般指数", tag: "exp", rule: "多出 ln a 因子", fFormula: "f = 2<sup>x</sup>", dFormula: "f′ = ln2·2<sup>x</sup>",
+        xMin: -4, xMax: 4, yMin: -0.5, yMax: 9, asymptotes: [{ y: 0 }],
+        f: [{ fn: x => Math.pow(2, x) }], d: [{ fn: x => Math.LN2 * Math.pow(2, x) }]
+      },
+      {
+        title: "自然对数", tag: "log", rule: "越来越平", fFormula: "f = ln x", dFormula: "f′ = 1/x",
+        xMin: -0.5, xMax: 8, yMin: -3, yMax: 4, domain: "x>0", asymptotes: [{ x: 0 }],
+        f: [{ fn: x => x <= 0 ? NaN : Math.log(x) }], d: [{ fn: x => x <= 0.045 ? NaN : 1 / x }]
+      },
+      {
+        title: "一般对数", tag: "log", rule: "底数只改比例", fFormula: "f = log<sub>2</sub>x", dFormula: "f′ = 1/(x ln2)",
+        xMin: -0.5, xMax: 8, yMin: -3.5, yMax: 4.5, domain: "x>0", asymptotes: [{ x: 0 }],
+        f: [{ fn: x => x <= 0 ? NaN : Math.log2(x) }], d: [{ fn: x => x <= 0.055 ? NaN : 1 / (x * Math.LN2) }]
+      },
+      {
+        title: "正弦", tag: "trig", rule: "峰谷处导数为 0", fFormula: "f = sin x", dFormula: "f′ = cos x",
+        xMin: -TAU, xMax: TAU, yMin: -1.5, yMax: 1.5,
+        f: [{ fn: x => Math.sin(x) }], d: [{ fn: x => Math.cos(x) }]
+      },
+      {
+        title: "余弦", tag: "trig", rule: "导数相位后移", fFormula: "f = cos x", dFormula: "f′ = -sin x",
+        xMin: -TAU, xMax: TAU, yMin: -1.5, yMax: 1.5,
+        f: [{ fn: x => Math.cos(x) }], d: [{ fn: x => -Math.sin(x) }]
+      },
+      {
+        title: "正切", tag: "trig", rule: "每支都递增", fFormula: "f = tan x", dFormula: "f′ = sec²x",
+        xMin: -PI * 1.35, xMax: PI * 1.35, yMin: -5, yMax: 8, domain: "x≠π/2+kπ", asymptotes: [{ x: -PI / 2 }, { x: PI / 2 }],
+        f: [{ fn: x => Math.abs(Math.cos(x)) < 0.06 ? NaN : Math.tan(x) }], d: [{ fn: x => Math.abs(Math.cos(x)) < 0.08 ? NaN : sec2(x) }]
+      },
+      {
+        title: "反正弦", tag: "inverse", rule: "端点斜率趋无穷", fFormula: "f = arcsin x", dFormula: "f′ = 1/√(1-x²)",
+        xMin: -1.2, xMax: 1.2, yMin: -2, yMax: 5, domain: "|x|<1", asymptotes: [{ x: -1 }, { x: 1 }],
+        f: [{ fn: x => Math.abs(x) > 1 ? NaN : Math.asin(x) }], d: [{ fn: x => Math.abs(x) >= 0.995 ? NaN : 1 / Math.sqrt(1 - x * x) }]
+      },
+      {
+        title: "反余弦", tag: "inverse", rule: "导数恒负", fFormula: "f = arccos x", dFormula: "f′ = -1/√(1-x²)",
+        xMin: -1.2, xMax: 1.2, yMin: -5, yMax: 4, domain: "|x|<1", asymptotes: [{ x: -1 }, { x: 1 }],
+        f: [{ fn: x => Math.abs(x) > 1 ? NaN : Math.acos(x) }], d: [{ fn: x => Math.abs(x) >= 0.995 ? NaN : -1 / Math.sqrt(1 - x * x) }]
+      },
+      {
+        title: "反正切", tag: "inverse", rule: "斜率向两侧衰减", fFormula: "f = arctan x", dFormula: "f′ = 1/(1+x²)",
+        xMin: -6, xMax: 6, yMin: -2, yMax: 2,
+        f: [{ fn: x => Math.atan(x) }], d: [{ fn: x => 1 / (1 + x * x) }]
+      },
+      {
+        title: "和", tag: "sum", rule: "逐项求导", fFormula: "f = x² + sin x", dFormula: "f′ = 2x + cos x",
+        xMin: -3.2, xMax: 3.2, yMin: -7, yMax: 12,
+        f: [{ fn: x => x * x + Math.sin(x) }], d: [{ fn: x => 2 * x + Math.cos(x) }]
+      },
+      {
+        title: "差", tag: "sum", rule: "符号一起保留", fFormula: "f = eˣ - x²", dFormula: "f′ = eˣ - 2x",
+        xMin: -3, xMax: 2.5, yMin: -8, yMax: 9,
+        f: [{ fn: x => Math.exp(x) - x * x }], d: [{ fn: x => Math.exp(x) - 2 * x }]
+      },
+      {
+        title: "常数倍", tag: "linear", rule: "常数提出来", fFormula: "f = 3sin x", dFormula: "f′ = 3cos x",
+        xMin: -TAU, xMax: TAU, yMin: -3.8, yMax: 3.8,
+        f: [{ fn: x => 3 * Math.sin(x) }], d: [{ fn: x => 3 * Math.cos(x) }]
+      },
+      {
+        title: "积", tag: "product", rule: "前导后不导 + 前不导后导", fFormula: "f = x sin x", dFormula: "f′ = sin x + x cos x",
+        xMin: -TAU, xMax: TAU, yMin: -7, yMax: 7,
+        f: [{ fn: x => x * Math.sin(x) }], d: [{ fn: x => Math.sin(x) + x * Math.cos(x) }]
+      },
+      {
+        title: "指数积", tag: "product", rule: "积法则 + 指数", fFormula: "f = xeˣ", dFormula: "f′ = (x+1)eˣ",
+        xMin: -3.5, xMax: 2.4, yMin: -2, yMax: 13,
+        f: [{ fn: x => x * Math.exp(x) }], d: [{ fn: x => (x + 1) * Math.exp(x) }]
+      },
+      {
+        title: "商", tag: "quotient", rule: "低导高减高导低，除低²", fFormula: "f = sin x / x", dFormula: "f′ = (xcosx-sinx)/x²",
+        xMin: -TAU, xMax: TAU, yMin: -1.2, yMax: 1.2, domain: "x≠0",
+        f: [{ fn: x => noneAt(x, 0.035) ? NaN : Math.sin(x) / x }], d: [{ fn: x => noneAt(x, 0.055) ? NaN : (x * Math.cos(x) - Math.sin(x)) / (x * x) }]
+      },
+      {
+        title: "对数商", tag: "quotient", rule: "商法则常考", fFormula: "f = ln x / x", dFormula: "f′ = (1-ln x)/x²",
+        xMin: -0.4, xMax: 7, yMin: -1.5, yMax: 1.5, domain: "x>0", asymptotes: [{ x: 0 }, { y: 0 }],
+        f: [{ fn: x => x <= 0 ? NaN : Math.log(x) / x }], d: [{ fn: x => x <= 0.04 ? NaN : (1 - Math.log(x)) / (x * x) }]
+      },
+      {
+        title: "链式", tag: "chain", rule: "外导 × 内导", fFormula: "f = sin(x²)", dFormula: "f′ = 2x cos(x²)",
+        xMin: -3.2, xMax: 3.2, yMin: -6, yMax: 6,
+        f: [{ fn: x => Math.sin(x * x) }], d: [{ fn: x => 2 * x * Math.cos(x * x) }]
+      },
+      {
+        title: "高斯型", tag: "chain", rule: "e 的链式求导", fFormula: "f = e<sup>-x²</sup>", dFormula: "f′ = -2xe<sup>-x²</sup>",
+        xMin: -3, xMax: 3, yMin: -1.5, yMax: 1.5,
+        f: [{ fn: x => Math.exp(-x * x) }], d: [{ fn: x => -2 * x * Math.exp(-x * x) }]
+      },
+      {
+        title: "对数复合", tag: "chain", rule: "先 ln，乘内导", fFormula: "f = ln(1+x²)", dFormula: "f′ = 2x/(1+x²)",
+        xMin: -5, xMax: 5, yMin: -1.5, yMax: 3.6,
+        f: [{ fn: x => Math.log(1 + x * x) }], d: [{ fn: x => 2 * x / (1 + x * x) }]
+      },
+      {
+        title: "根式复合", tag: "chain", rule: "根号外导 × 内导", fFormula: "f = √(1+x²)", dFormula: "f′ = x/√(1+x²)",
+        xMin: -5, xMax: 5, yMin: -1.5, yMax: 5.5,
+        f: [{ fn: x => Math.sqrt(1 + x * x) }], d: [{ fn: x => x / Math.sqrt(1 + x * x) }]
+      },
+      {
+        title: "复合幂", tag: "chain", rule: "幂法则 + 内导", fFormula: "f = (x+1)³", dFormula: "f′ = 3(x+1)²",
+        xMin: -3.2, xMax: 2.4, yMin: -8, yMax: 13,
+        f: [{ fn: x => Math.pow(x + 1, 3) }], d: [{ fn: x => 3 * Math.pow(x + 1, 2) }]
+      },
+      {
+        title: "三角复合", tag: "chain", rule: "内层 2x 给因子 2", fFormula: "f = cos(2x)", dFormula: "f′ = -2sin(2x)",
+        xMin: -TAU, xMax: TAU, yMin: -2.4, yMax: 2.4,
+        f: [{ fn: x => Math.cos(2 * x) }], d: [{ fn: x => -2 * Math.sin(2 * x) }]
+      }
+    ];
+
+    function svgNode(name, attrs = {}) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
+      return el;
+    }
+
+    function tickLabel(v) {
+      const specials = [[-TAU, "-2π"], [-PI, "-π"], [-PI / 2, "-π/2"], [0, "0"], [PI / 2, "π/2"], [PI, "π"], [TAU, "2π"]];
+      for (const [target, label] of specials) if (Math.abs(v - target) < 0.035) return label;
+      if (Math.abs(v) < 1e-9) return "0";
+      return Number.isInteger(v) ? String(v) : v.toFixed(1).replace(/\.0$/, "");
+    }
+
+    function compactTicks(min, max) {
+      if (min <= -TAU + 0.1 && max >= TAU - 0.1) return [-TAU, 0, TAU];
+      if (min <= -PI + 0.1 && max >= PI - 0.1) return [-PI, 0, PI];
+      const ticks = [min];
+      if (min < 0 && max > 0) ticks.push(0);
+      else ticks.push((min + max) / 2);
+      ticks.push(max);
+      return ticks;
+    }
+
+    function drawPlot(slot, item, curves, kind, plotIndex) {
+      const svg = svgNode("svg", { class: "plot", viewBox: `0 0 ${W} ${H}`, role: "img" });
+      const innerW = W - PAD.left - PAD.right;
+      const innerH = H - PAD.top - PAD.bottom;
+      const xScale = x => PAD.left + ((x - item.xMin) / (item.xMax - item.xMin)) * innerW;
+      const yScale = y => PAD.top + (1 - ((y - item.yMin) / (item.yMax - item.yMin))) * innerH;
+      const clipId = `clip-${plotIndex}-${kind}-${Math.random().toString(36).slice(2)}`;
+
+      const defs = svgNode("defs");
+      const clip = svgNode("clipPath", { id: clipId });
+      clip.appendChild(svgNode("rect", { x: PAD.left, y: PAD.top, width: innerW, height: innerH, rx: 5 }));
+      defs.appendChild(clip);
+      svg.appendChild(defs);
+
+      compactTicks(item.xMin, item.xMax).forEach(x => {
+        const sx = xScale(x);
+        svg.appendChild(svgNode("line", { class: "grid-line", x1: sx, x2: sx, y1: PAD.top, y2: H - PAD.bottom }));
+        const t = svgNode("text", { class: "tick-label", x: sx, y: H - 5, "text-anchor": "middle" });
+        t.textContent = tickLabel(x);
+        svg.appendChild(t);
+      });
+
+      compactTicks(item.yMin, item.yMax).forEach(y => {
+        const sy = yScale(y);
+        svg.appendChild(svgNode("line", { class: "grid-line", x1: PAD.left, x2: W - PAD.right, y1: sy, y2: sy }));
+      });
+
+      if (item.xMin <= 0 && item.xMax >= 0) {
+        const sx = xScale(0);
+        svg.appendChild(svgNode("line", { class: "axis", x1: sx, x2: sx, y1: PAD.top, y2: H - PAD.bottom }));
+      }
+      if (item.yMin <= 0 && item.yMax >= 0) {
+        const sy = yScale(0);
+        svg.appendChild(svgNode("line", { class: "axis", x1: PAD.left, x2: W - PAD.right, y1: sy, y2: sy }));
+        const t = svgNode("text", { class: "tick-label", x: 3, y: sy + 3 });
+        t.textContent = "0";
+        svg.appendChild(t);
+      }
+
+      (item.asymptotes || []).forEach(mark => {
+        if (mark.x !== undefined && mark.x >= item.xMin && mark.x <= item.xMax) {
+          const sx = xScale(mark.x);
+          svg.appendChild(svgNode("line", { class: "asymptote", x1: sx, x2: sx, y1: PAD.top, y2: H - PAD.bottom }));
+        }
+        if (mark.y !== undefined && mark.y >= item.yMin && mark.y <= item.yMax) {
+          const sy = yScale(mark.y);
+          svg.appendChild(svgNode("line", { class: "asymptote", x1: PAD.left, x2: W - PAD.right, y1: sy, y2: sy }));
+        }
+      });
+
+      curves.forEach((curve, curveIndex) => {
+        let path = "";
+        let open = false;
+        let lastY = null;
+        const steps = 420;
+        const maxJump = innerH * 1.3;
+        const minScreenY = PAD.top - innerH * 4;
+        const maxScreenY = H - PAD.bottom + innerH * 4;
+
+        for (let i = 0; i <= steps; i++) {
+          const x = item.xMin + (i / steps) * (item.xMax - item.xMin);
+          const y = curve.fn(x);
+          const sy = yScale(y);
+          const valid = finite(y) && finite(sy) && sy > minScreenY && sy < maxScreenY;
+
+          if (!valid) {
+            open = false;
+            lastY = null;
+            continue;
+          }
+
+          const sx = xScale(x);
+          const mustMove = !open || (lastY !== null && Math.abs(sy - lastY) > maxJump);
+          path += `${mustMove ? "M" : "L"} ${sx.toFixed(2)} ${sy.toFixed(2)} `;
+          open = true;
+          lastY = sy;
+        }
+
+        if (path.trim()) {
+          const cls = [`curve`, kind, curve.alt ? "alt" : "", curve.branch ? "branch" : ""].filter(Boolean).join(" ");
+          svg.appendChild(svgNode("path", { class: cls, d: path.trim(), "clip-path": `url(#${clipId})` }));
+        }
+      });
+
+      slot.appendChild(svg);
+    }
+
+    function card(item, index) {
+      const el = document.createElement("article");
+      el.className = "card";
+      el.style.setProperty("--delay", `${Math.min(index, 15) * 22}ms`);
+      el.innerHTML = `
+        <header class="card-head">
+          <div>
+            <h2 class="title">${item.title}</h2>
+            <p class="rule">${item.rule}</p>
+          </div>
+          <span class="tag">${item.tag}</span>
+        </header>
+        <div class="formula-row">
+          <div class="formula-box"><span class="label">function</span><span class="formula">${item.fFormula}</span></div>
+          <div class="formula-box"><span class="label">derivative</span><span class="formula">${item.dFormula}</span></div>
+        </div>
+        <div class="plots">
+          <div class="plot-box"><div class="plot-name"><span>f(x)</span><span class="domain">${item.domain || ""}</span></div><div class="f-slot"></div></div>
+          <div class="plot-box"><div class="plot-name"><span>f′(x)</span><span class="domain">${item.domain || ""}</span></div><div class="d-slot"></div></div>
+        </div>`;
+      drawPlot(el.querySelector(".f-slot"), item, item.f, "f", index);
+      drawPlot(el.querySelector(".d-slot"), item, item.d, "d", index);
+      return el;
+    }
+
+    const atlas = document.querySelector("#atlas");
+    examples.forEach((item, index) => atlas.appendChild(card(item, index)));
+  </script>
+</body>
+</html>
